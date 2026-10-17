@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101715"><title>开发者计划 · 深渊渔场</title><link rel="icon" href="{{ url_for('static',filename='favicon.svg') }}"><link rel="stylesheet" href="{{ url_for('static',filename='style.css') }}"><link rel="stylesheet" href="{{ url_for('static',filename='developer.css') }}"><script defer src="{{ url_for('static',filename='developer.js') }}"></script></head>
+<body class="dev-page"><div class="dev-shell" id="developer-app" data-csrf="{{ csrf }}" data-enabled="{{ 'true' if user.developer_enabled else 'false' }}">
+<header class="dev-header"><a class="wordmark" href="/">ABYSSAL <span>深渊渔场</span></a><div><span class="dev-username">{{ user.username }}</span><a href="/" class="outline-button">返回渔场 ↗</a></div></header>
+<main class="dev-main"><section class="dev-intro"><div class="eyebrow">ABYSSAL DEVELOPER PROGRAM <span class="dev-beta">BETA</span></div><h1>让你的代码，也能潜入深海。</h1><p>使用 User Key 调用 Flask 游戏接口。每一次渔获，都由同一套深海规则计算。</p></section>
+<div id="developer-feedback" class="dev-feedback" role="status" hidden></div>
+{% if user.developer_enabled %}
+<div class="dev-layout"><section class="dev-card"><div class="dev-section-heading"><h2>User Key 管理</h2><span class="dev-status">● 开发者计划已启用</span></div><p class="dev-muted">最多创建 5 个有效 Key。名称用于区分脚本，完整 Key 仅在创建时显示一次。</p>
+<form id="create-key-form" class="dev-create-form"><label for="key-name">Key 名称</label><div><input id="key-name" name="name" maxlength="40" placeholder="例如：我的捕鱼脚本" value="默认 Key" required><button id="create-key-button" class="cast-button" type="submit">创建 User Key +</button></div></form>
+<section id="new-key-panel" class="dev-new-key" hidden><div class="dev-section-heading"><h3>复制并保存你的 User Key</h3><button id="hide-new-key" class="text-button" type="button">关闭并隐藏 ×</button></div><p>离开或关闭后无法再次查看，遗失时可吊销后重新创建。</p><label for="new-key-value" class="dev-sr-only">刚创建的完整 User Key</label><div class="dev-key-value"><input id="new-key-value" readonly autocomplete="off" spellcheck="false"><button id="copy-key-button" class="outline-button" type="button">复制</button></div></section>
+<div class="dev-table-scroll"><table class="dev-keys-table"><thead><tr><th>名称</th><th>Key 前缀</th><th>最近使用</th><th>状态</th><th>操作</th></tr></thead><tbody id="key-list"><tr><td colspan="5">正在读取 Key…</td></tr></tbody></table></div></section>
+<aside class="dev-card dev-guide-card"><div class="eyebrow">START YOUR FIRST REQUEST</div><h2>一枚 Key，12 个深海接口。</h2><p>开启渔网、手动捕鱼、兑换钻石、升级潜航员与装备，以及读取余额和完整图鉴。</p><a href="/developer/docs" class="cast-button">打开开发文档 <span>→</span></a><div class="dev-divider"></div><h3>沿用 Cookie 航程</h3><p>Key 用于鉴权，游戏数据仍由签名 Cookie 保存。脚本需要保留返回的 Cookie；独立脚本不会自动获得浏览器的 Cookie。</p><small>接口手册内附 curl、Python Session 与标准库示例。</small></aside></div>
+{% else %}
+<section class="dev-card dev-join-card"><div class="eyebrow">OPT IN TO THE DEEP</div><h2>加入开发者计划【beta】</h2><p>开启后可以创建、管理和吊销 User Key，访问接口手册，并调用全部 12 个 Flask 游戏接口。现有账号也可以在这里加入。</p><p>API 与网页遵守相同的升级、兑换和数值上限规则，进度继续保存在客户端的签名 Cookie 中。</p><button id="join-developer-button" class="cast-button">加入开发者计划【beta】 →</button></section>
+{% endif %}
+<footer class="dev-footer">FLASK EDITION ONLY <span>深渊渔场 · 开发者计划【beta】</span></footer></main></div></body></html>
