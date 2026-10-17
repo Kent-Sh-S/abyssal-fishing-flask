@@ -164,7 +164,7 @@ requirements.txt             Flask 依赖
 python -m unittest discover -s tests -v
 ```
 
-45 项 Python 测试覆盖数值边界、账号与 Cookie 隔离、CSRF、Key 创建与吊销、API 鉴权、潜航员升级与网页结果一致、失败请求不扣资源、自动拖网结算及数据库迁移。测试使用临时数据库，不修改真实账号和存档。
+52 项 Python 测试覆盖数值边界、账号与 Cookie 隔离、CSRF、Key 创建与吊销、API 鉴权、潜航员升级与网页结果一致、失败请求不扣资源、自动拖网结算及数据库迁移。测试使用临时数据库，不修改真实账号和存档。
 
 ## 发布内容
 
@@ -173,3 +173,9 @@ python -m unittest discover -s tests -v
 ## 题材参考
 
 原创美术和代码，题材参考 [DREDGE](https://www.dredge.game/) 与 [Drowned Lake](https://store.steampowered.com/app/2601540/Drowned_Lake/) 的深海捕鱼与恐怖氛围。
+
+## 桌面版与许可证
+
+使用 xppb 构建 Windows 单 EXE（隐藏命令行）和 macOS ARM64 / Intel `.app`。运行方式、数据目录、UTC 崩溃报告及构建命令见 [DESKTOP_BUILD.md](DESKTOP_BUILD.md)。`KeyboardInterrupt` 不写崩溃日志。
+
+本项目采用 [MIT 许可证](LICENSE)。
