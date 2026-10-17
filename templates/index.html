@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-edition="{{ edition | default('flask') }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#101715">
+  <meta name="description" content="深渊渔场：一场通往浮点数尽头的猎奇捕鱼之旅。">
+  <title>深渊渔场 · ABYSSAL</title>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script id="fish-data" type="application/json">{{ fish | tojson }}</script>
+  <script defer src="{{ url_for('static', filename='fish.js') }}"></script>
+  {% if edition == 'memory' %}<script defer src="{{ url_for('static', filename='memory-engine.js') }}"></script>{% endif %}
+  <script defer src="{{ url_for('static', filename='game.js') }}"></script>
+</head>
+<body>
+<svg class="sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+  <symbol id="i-hook" viewBox="0 0 24 24"><path d="M14 3v13a5 5 0 0 1-10 0v-4l3 3M11 3h6M14 7l3 2"/></symbol>
+  <symbol id="i-fish" viewBox="0 0 24 24"><path d="M3 12c5-9 12-9 17 0-5 9-12 9-17 0Zm0 0L1 7v10l2-5ZM10 5l4-3 1 4M10 19l4 3 1-4"/><circle cx="16" cy="11" r="1"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 5c-3-2-7-2-10-1v15c3-1 7-1 10 1 3-2 7-2 10-1V4c-3-1-7-1-10 1Zm0 0v15M5 8h4M5 12h4M15 8h4M15 12h4"/></symbol>
+  <symbol id="i-diamond" viewBox="0 0 24 24"><path d="m3 8 4-5h10l4 5-9 13L3 8Zm0 0h18M7 3l5 18 5-18M7 3l5 5 5-5"/></symbol>
+  <symbol id="i-coin" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v5c0 4 16 4 16 0V6M4 11v5c0 4 16 4 16 0v-5M8 9v4M16 9v4M8 14v4M16 14v4"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 20V4m-6 6 6-6 6 6"/></symbol>
+  <symbol id="i-net" viewBox="0 0 24 24"><path d="M5 3h14l2 15c-6 4-12 4-18 0L5 3ZM4 9h16M3 15h18M9 3l-1 17M15 3l1 17"/></symbol>
+  <symbol id="i-sonar" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><path d="m12 12 7-7M12 3v2M3 12h2M12 19v2M19 12h2"/></symbol>
+  <symbol id="i-charm" viewBox="0 0 24 24"><path d="m12 2 8 7-8 13L4 9l8-7Zm0 0v20M4 9h16M8 6l8 11M16 6l-8 11"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><path d="m9 3 1-2h4l1 2 3 2h3l2 4-2 2v3l1 3-3 3-3-1-3 2-2 2-4-2v-3l-2-2-3-1v-4l3-1 2-3V3Z" transform="translate(1 1) scale(.85)"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-sound" viewBox="0 0 24 24"><path d="m11 4-6 5H2v6h3l6 5V4ZM15 8a6 6 0 0 1 0 8M18 4a11 11 0 0 1 0 16"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V6a4 4 0 0 1 8 0v4M12 14v3"/></symbol>
+  <symbol id="i-waves" viewBox="0 0 24 24"><path d="M2 6c3-5 7 5 10 0s7 5 10 0M2 12c3-5 7 5 10 0s7 5 10 0M2 18c3-5 7 5 10 0s7 5 10 0"/></symbol>
+</defs></svg>
+<div class="app-shell">
+  <aside class="rail" aria-label="主导航">
+    <a class="brand-mark" href="/" aria-label="深渊渔场首页"><svg><use href="#i-hook"/></svg></a>
+    <div class="rail-nav">
+      <button class="nav-button active" data-nav="fishing" title="渔场" aria-label="渔场" aria-current="page"><svg><use href="#i-fish"/></svg><span>渔场</span></button>
+      <button class="nav-button" data-nav="atlas" title="异变图鉴" aria-label="异变图鉴"><svg><use href="#i-book"/></svg><span>图鉴</span></button>
+      <button class="nav-button" data-nav="market" title="深海黑市" aria-label="深海黑市"><svg><use href="#i-diamond"/></svg><span>黑市</span><i class="nav-dot"></i></button>
+    </div>
+    <div class="rail-bottom"><span class="vertical-word">THE DEEP IS CALLING</span><button id="settings-button" class="icon-button" title="航行设置" aria-label="航行设置"><svg><use href="#i-settings"/></svg></button><div class="avatar">渔</div></div>
+  </aside>
+  <div class="workspace">
+    <header class="topbar"><a class="wordmark" href="/">ABYSSAL <span>深渊渔场</span></a><div class="topbar-right"><span class="connection"><i></i><span id="connection-label">正在接入声呐</span></span><span class="top-divider"></span><button id="sound-button" class="icon-button muted" title="开启音效" aria-label="开启音效" aria-pressed="false"><svg><use href="#i-sound"/></svg></button><button id="help-button" class="help-button" title="航行指南" aria-label="航行指南">?</button></div></header>
+    <main>
+      <section class="page-heading"><div><div class="eyebrow"><span class="tiny-line"></span> AN INCREMENTAL FISHING EXPEDITION</div><h1 id="page-title">深海之下，万物生长。</h1><p id="page-description">抛下鱼钩。带回一些不该被发现的东西。</p></div><div class="voyage-number"><span>航行编号</span><strong>NO. 001</strong><small>一切从这片海开始</small></div></section>
+      <section class="resources" aria-label="航行资产">
+        <div class="resource coins"><div class="resource-icon"><svg><use href="#i-coin"/></svg></div><div><div class="resource-label">持有金币 <span>GOLD</span></div><div class="resource-value" id="gold-value">0<span class="unit">金币</span></div></div><div class="resource-note" id="gold-note">第一条鱼，第一桶金。</div></div>
+        <div class="resource diamonds"><div class="resource-icon"><svg><use href="#i-diamond"/></svg></div><div><div class="resource-label">深海钻石 <span>DIAMOND</span></div><div class="resource-value" id="diamond-value">0<span class="unit">钻石</span></div></div><span class="subtle-tag" id="diamond-tag">Lv.30 解锁兑换</span></div>
+        <div class="resource catch-count"><div class="resource-icon"><svg><use href="#i-fish"/></svg></div><div><div class="resource-label">累计渔获 <span>CATCHES</span></div><div class="resource-value" id="catch-count">0<span class="unit">条</span></div></div><div class="resource-note" id="collection-note">已发现 0 / 8 种异变</div></div>
+      </section>
+
+      <section class="view active" id="view-fishing">
+        <div class="fishing-layout">
+          <div class="fishing-left">
+            <section class="ocean-card">
+              <div class="scene-header"><div><span class="live-dot"></span><strong id="sea-name">暮色海沟</strong><span class="scene-english">TWILIGHT TRENCH</span></div><span class="depth-label">深度 <b id="depth-value">128</b> m <svg><use href="#i-waves"/></svg></span></div>
+              <div class="ocean-scene" id="ocean-scene">
+                <div class="scene-topline"><span>23° 17′ N &nbsp; 142° 08′ E</span><span>水温 02.4°C &nbsp; · &nbsp; 能见度 低</span></div>
+                <div class="light-shaft shaft-one"></div><div class="light-shaft shaft-two"></div>
+                <svg class="sea-landscape" viewBox="0 0 1000 490" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+                  <defs><linearGradient id="sea-grad" x2="0" y2="1"><stop stop-color="#1d3731"/><stop offset=".55" stop-color="#122720"/><stop offset="1" stop-color="#091b18"/></linearGradient><linearGradient id="floor-grad" x2="0" y2="1"><stop stop-color="#1e3831"/><stop offset="1" stop-color="#0b1917"/></linearGradient><radialGradient id="sea-glow"><stop stop-color="#8ecba1" stop-opacity=".08"/><stop offset="1" stop-color="#8ecba1" stop-opacity="0"/></radialGradient><filter id="sea-blur"><feGaussianBlur stdDeviation="3"/></filter></defs>
+                  <rect width="1000" height="490" fill="url(#sea-grad)"/><ellipse cx="530" cy="195" rx="340" ry="230" fill="url(#sea-glow)"/>
+                  <g fill="none" stroke="#5e8d79" stroke-opacity=".12"><path d="M-20 57Q130 20 290 52T620 45T1020 35M-20 74Q140 38 300 70T650 60T1020 62M-20 90Q170 60 330 95T700 77T1020 86"/><path d="M-10 102q170-25 340 12t360-5 350 2"/></g>
+                  <g fill="#6a9582" opacity=".16"><path d="m99 157 16-6 19 7-20 5-15-6-8 8v-16ZM154 186l20-7 22 9-22 5-20-7-8 8v-15ZM800 126l15-6 19 7-20 5-14-6-9 7v-14ZM843 148l12-5 16 6-15 4-13-5-7 6v-12Z"/></g>
+                  <path d="M0 359 72 338l66 15 48 44 80 8 58 20 82-3 58 28 88-16 77-13 78-34 60 13 67-43 41-11 77-3v147H0Z" fill="#112a24"/>
+                  <path d="m0 401 96-24 75 35 89 17 75-8 101 41 109-9 81-23 78 9 97-35 106-21 93 17v90H0Z" fill="url(#floor-grad)"/>
+                  <g fill="none" stroke="#3c6250" stroke-width="4" opacity=".5"><path d="M72 440q-31-35-18-92m15 75q26-51 9-86m-20 60q-29-16-35-59M109 447q32-43 23-91m-13 66q-9-27-1-42M898 426q-24-52-13-106m6 67q28-25 21-66m-22 39q-29-19-28-47M939 419q35-60 20-115m-8 68q-33-25-28-55"/></g>
+                  <g fill="#2d5040" opacity=".7"><ellipse cx="41" cy="354" rx="6" ry="15" transform="rotate(-35 41 354)"/><ellipse cx="80" cy="337" rx="5" ry="16"/><ellipse cx="132" cy="359" rx="5" ry="15" transform="rotate(20 132 359)"/><ellipse cx="887" cy="325" rx="6" ry="19"/><ellipse cx="911" cy="322" rx="5" ry="17" transform="rotate(22 911 322)"/><ellipse cx="958" cy="308" rx="6" ry="19"/></g>
+                  <g opacity=".4" fill="#659584"><circle cx="324" cy="145" r="1.4"/><circle cx="196" cy="245" r="1.8"/><circle cx="706" cy="202" r="1.3"/><circle cx="800" cy="280" r="1.5"/><circle cx="628" cy="92" r="1"/><circle cx="377" cy="340" r="1"/><circle cx="840" cy="210" r="1"/><circle cx="240" cy="110" r="1"/></g>
+                </svg>
+                <div class="sonar-ring ring-one"></div><div class="sonar-ring ring-two"></div><div class="crosshair crosshair-a"></div><div class="crosshair crosshair-b"></div>
+                <div class="fishing-line"><span class="line-string"></span><svg><use href="#i-hook"/></svg></div>
+                <div class="hero-fish" id="hero-fish"></div><div class="distant-jelly" id="distant-jelly"></div><div class="sea-particles" id="sea-particles"></div>
+                <div class="fish-annotation"><i></i><span>未知生命信号<strong>等待收线确认</strong></span></div>
+                <div class="scene-bottomline"><span><i class="live-dot"></i> 声呐信号正常</span><span id="sea-whisper">“海在凝视着你。”</span><span>CH. 01 / 深潜区</span></div>
+                <div class="catch-reveal" id="catch-reveal" aria-live="polite"><span class="reveal-label">成功捕获</span><strong id="reveal-name"></strong><span id="reveal-reward"></span></div>
+              </div>
+              <div class="casting-controls"><div class="cast-hint"><span class="signal-bars"><i></i><i></i><i></i><i></i></span><div><strong id="casting-status">有什么东西咬住了鱼钩…</strong><span id="typical-reward">Lv.1 · 每条鱼 10—100 万金币</span></div></div><div class="cast-actions"><button class="auto-button" id="auto-button" title="Lv.5 可购买自动拖网"><svg><use href="#i-net"/></svg><span id="auto-label">自动拖网</span><i class="toggle-dot"></i></button><button class="cast-button" id="cast-button" disabled><svg><use href="#i-hook"/></svg><span id="cast-label">正在连接</span><kbd>空格</kbd></button></div></div>
+            </section>
+            <section class="collection-section"><div class="section-heading"><h2>异变图鉴 <span>THE ABERRATIONS</span></h2><button class="text-button" data-nav="atlas">查看全部 <svg><use href="#i-arrow"/></svg></button></div><div id="preview-cards" class="preview-cards"></div><div class="collection-footnote"><span>每一条异变，都藏着一个海底的秘密。</span><span id="atlas-progress">收集进度 0%</span></div></section>
+          </div>
+          <aside class="right-column">
+            <section class="level-panel"><div class="panel-heading"><h2>潜航员等级</h2><span class="small-english">CAPTAIN</span></div><div class="level-display"><div class="level-badge"><svg><use href="#i-sonar"/></svg></div><div><span class="level-prefix">LV.</span><strong id="level-value">01</strong></div><div class="level-title"><span id="rank-title">初入深海</span><small id="next-unlock">Lv.5 解锁自动拖网</small></div></div><div class="progress-track"><div id="level-progress"></div></div><div class="level-progress-label"><span id="level-progress-caption">下一级升级资金</span><b id="upgrade-progress-text">0%</b></div><button class="upgrade-button" id="upgrade-button" disabled><span><svg><use href="#i-up"/></svg><span id="upgrade-action-label">升级潜航员</span></span><span><svg class="small-icon"><use href="#i-coin"/></svg><b id="upgrade-cost">1,107</b></span></button><button class="max-button" id="max-upgrade-button" disabled>尽可能升级 <span>MAX ↑</span></button></section>
+            <section class="equipment-panel"><div class="panel-heading"><h2>深潜装备</h2><span class="small-english">EQUIPMENT</span></div><div id="equipment-list"></div></section>
+            <section class="black-market-teaser"><div class="market-icon"><svg><use href="#i-diamond"/></svg></div><div><h3>有人在收购你的秘密。</h3><p id="market-teaser-text">达到 Lv.30，开启深海黑市。</p></div><button class="icon-button" data-nav="market" title="前往黑市" aria-label="前往黑市"><svg><use href="#i-arrow"/></svg></button></section>
+            <section class="recent-panel"><div class="panel-heading"><h2>最近渔获</h2><span class="subtle-tag" id="recent-count">0 条</span></div><div id="recent-list" class="recent-list"><div class="empty-catches"><svg><use href="#i-hook"/></svg><p>鱼篓还空着。</p><span>试着抛下第一枚鱼钩。</span></div></div></section>
+          </aside>
+        </div>
+      </section>
+      <section class="view" id="view-atlas" hidden><div class="section-heading atlas-heading"><h2>海底档案 <span>FIELD NOTES / 001—008</span></h2><span class="subtle-tag" id="atlas-count">0 / 8 已发现</span></div><div class="atlas-filters" role="group" aria-label="按稀有度筛选"><button class="active" data-filter="all">全部异变</button><button data-filter="常见">常见</button><button data-filter="稀有">稀有</button><button data-filter="史诗">史诗</button><button data-filter="传说">传说</button></div><div id="atlas-grid" class="atlas-grid"></div></section>
+      <section class="view" id="view-market" hidden><div class="market-layout"><div class="exchange-panel"><div class="eyebrow">THE DEEP-SEA EXCHANGE</div><div class="exchange-visual"><svg><use href="#i-diamond"/></svg><i></i><i></i></div><h2>把海底的秘密，<br>换成永恒的光。</h2><p>每次交易都会随机抽取兑换比率。<br>越丰厚的回报，越不容易遇见。</p><div class="exchange-lock" id="exchange-lock"><svg><use href="#i-lock"/></svg><span>潜航员达到 Lv.30 后开放交易</span></div><div class="exchange-controls"><label>选择投入的金币份额</label><div class="fraction-options"><button data-fraction="25">25%</button><button data-fraction="50">50%</button><button class="active" data-fraction="100">全部金币</button></div><div class="exchange-estimate"><span>本次预计消耗</span><strong id="exchange-spend">0 金币</strong></div><p class="special-warning" id="special-warning" hidden>已触发深渊契约：将消耗全部金币，发放 9,223,372,036,854,775,807 钻石。超出钱包上限的钻石会被销毁。</p><button class="cast-button exchange-button" id="exchange-button" disabled><svg><use href="#i-diamond"/></svg><span>开启随机兑换</span><svg><use href="#i-arrow"/></svg></button><div class="exchange-result" id="exchange-result" aria-live="polite"></div></div></div><div class="exchange-rules"><div class="panel-heading"><h2>黑市价目表</h2><span class="small-english">EXCHANGE RATES</span></div><div class="rate-table-head"><span>每 1 兆金币可得</span><span>出现概率</span></div><div id="rate-list"></div><div class="market-rule-note"><svg><use href="#i-charm"/></svg><div><h3>深渊契约</h3><p>持有金币<strong>严格超过 10⁹ 兆</strong>时，任意份额的兑换均会消耗全部金币，并发放 INT64_MAX 钻石。钱包超额部分销毁。</p></div></div><p class="market-fine-print">1 兆 = 10¹² 金币 · 常规兑换按整兆结算<br>每次独立抽取 · 结果由服务端产生</p></div></div></section>
+      <footer class="page-footer"><span><i class="live-dot"></i> <span id="save-status">航行数据自动保存</span></span><span>越是深潜，越难回头。<span class="footer-mark">ABYSSAL © 2026</span></span></footer>
+    </main>
+  </div>
+</div>
+<div class="toast-stack" id="toast-stack" aria-live="polite"></div>
+<dialog id="details-dialog" class="game-dialog"><button class="dialog-close icon-button" data-close aria-label="关闭"><svg><use href="#i-close"/></svg></button><div id="details-content"></div></dialog>
+<dialog id="help-dialog" class="game-dialog help-dialog"><button class="dialog-close icon-button" data-close aria-label="关闭"><svg><use href="#i-close"/></svg></button><div class="eyebrow">A CAPTAIN'S HANDBOOK</div><h2>欢迎来到深渊渔场。</h2><p>按下「抛下鱼钩」或空格捕鱼，渔获会立即卖出并获得金币。花费金币提升潜航员等级，单鱼收益将不断攀升。</p><ol><li><strong>Lv.5</strong> · 船坞开放自动拖网，离线最多结算 1 小时。</li><li><strong>Lv.12 / 25 / 40 / 80</strong> · 更深处的异变陆续出现。</li><li><strong>Lv.30</strong> · 基础单鱼约 50 兆金币，开放钻石兑换及深渊护符。</li><li><strong>Lv.870</strong> · 抵达数值尽头，金币停止增长。</li></ol><p>金币储存为 F64，并在最大有限数之前封顶。钻石以有符号 INT64 储存，超额销毁。1 兆 = 10¹²。</p><button class="cast-button" data-close>明白了，开始航行 <svg><use href="#i-arrow"/></svg></button></dialog>
+<dialog id="settings-dialog" class="game-dialog settings-dialog"><button class="dialog-close icon-button" data-close aria-label="关闭"><svg><use href="#i-close"/></svg></button><div class="eyebrow">SHIP'S LOG</div><h2>航行设置</h2>{% if username %}<div class="setting-row"><span>潜航员 · {{ username }}</span><button id="logout-button" class="outline-button">退出登录</button></div><div class="setting-row"><span>开发者计划【beta】</span><a href="/developer" class="outline-button">{{ 'User Key 与文档' if developer_enabled else '加入计划' }}</a></div>{% endif %}<div class="edition-notice">{% if edition == 'memory' %}即玩版 · 不保存进度，刷新页面即重新开始。{% else %}账户版 · 进度保存在本浏览器的签名 Cookie。{% endif %}</div><div class="setting-row"><span>声音反馈</span><button id="settings-sound" class="outline-button">已关闭</button></div><div class="setting-row"><span>显示方式</span><button id="notation-button" class="outline-button">中文单位</button></div><div class="data-readout"><span>金币 · IEEE 754 binary64</span><strong id="exact-gold">0</strong><span>钻石 · signed INT64</span><strong id="exact-diamonds">0</strong><small>金币上限 1.7976931348623155 × 10³⁰⁸<br>钻石上限 9,223,372,036,854,775,807</small></div><details class="reset-section"><summary>重新开始航行</summary><p>将清空当前航程的金币、钻石、等级与图鉴。输入「深渊」确认。</p><div><input id="reset-confirm" placeholder="输入 深渊" aria-label="输入深渊确认重置" autocomplete="off"><button id="reset-button" class="danger-button">清空存档</button></div></details></dialog>
+</body>
+</html>
