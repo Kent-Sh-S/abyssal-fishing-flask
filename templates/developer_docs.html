@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101715"><title>接口手册 · 深渊渔场</title><link rel="icon" href="{{ url_for('static',filename='favicon.svg') }}"><link rel="stylesheet" href="{{ url_for('static',filename='style.css') }}"><link rel="stylesheet" href="{{ url_for('static',filename='developer.css') }}"></head>
+<body class="dev-page"><div class="dev-shell"><header class="dev-header"><a class="wordmark" href="/">ABYSSAL <span>接口手册</span></a><div><a class="outline-button" href="/developer">管理 User Key</a><a class="text-button" href="/">返回游戏 ↗</a></div></header>
+<main class="dev-main dev-docs"><div class="eyebrow">DEVELOPER DOCUMENTATION <span class="dev-beta">BETA</span></div><h1>把第一枚鱼钩，写进代码。</h1><p class="dev-lead">仅适用于 Flask 版。所有接口均需要 User Key，账户密码不能替代 Key。</p>
+<nav class="dev-doc-nav"><a href="#authentication">鉴权与存档</a><a href="#endpoints">接口手册</a><a href="#responses">返回格式</a><a href="#examples">调用示例</a><a href="#errors">错误代码</a></nav>
+<section id="authentication" class="dev-card"><h2>01 / 鉴权与 Cookie 存档</h2><p>注册时勾选「加入开发者计划【beta】」，或在游戏设置中进入开发者计划并加入。随后在 <a href="/developer">Key 管理页</a> 创建 User Key。</p><p>推荐在每次请求中携带 <code>X-User-Key: YOUR_USER_KEY</code>，也兼容 <code>Authorization: Bearer YOUR_USER_KEY</code>。不要将 Key 放入 URL、请求体或 Cookie。两个鉴权请求头同时出现时必须一致。</p><p>接口不要求网页登录，也不要求 CSRF Token。Key 的创建、吊销和计划设置则需要网页登录及 CSRF 验证。有效 Key 可以直接调用下表接口。</p><div class="dev-note"><strong>Key 鉴权，Cookie 保存航程。</strong><p>客户端必须保留响应的 <code>Set-Cookie</code>，并在后续请求中带回 Cookie。只带 Key、不保留 Cookie 的独立请求会开启新航程。Python 客户端请使用同一个 CookieJar，curl 请使用 <code>-b</code> 和 <code>-c</code>。另一程序无法仅凭 Key 读取浏览器内的存档。</p><p>有效 Key 对应的账号决定使用哪个存档；其他账号的 Cookie 不会被读取。多客户端共享同一份 Cookie 时，请将调用串行执行，避免互相覆盖。</p></div><p>所有成功请求（包括 GET 查询）都会先结算自动拖网，最多补结算 1 小时，并返回更新的 Cookie。规则失败不会提交游戏存档，待结算收益会在下次成功请求时处理。</p><p>当前服务地址：<code>{{ base_url }}</code>。纯 JS 站点（Sites / GitHub Pages）不提供这些 API。</p></section>
+<section id="endpoints" class="dev-card"><h2>02 / 接口手册</h2><p>10 个状态修改接口使用 <strong>POST</strong>，不需要请求体；2 个读取接口使用 <strong>GET</strong>。请求头必须携带 Key。</p><div class="dev-table-scroll"><table class="dev-endpoints"><thead><tr><th>方法</th><th>路径</th><th>作用</th><th>条件与错误</th></tr></thead><tbody>{% for method,path,title,note in routes %}<tr><td><span class="dev-method {{ method|lower }}">{{ method }}</span></td><td><code>{{ path }}</code></td><td>{{ title }}</td><td>{{ note }}</td></tr>{% endfor %}</tbody></table></div><div class="dev-note"><strong>钻石兑换与上限</strong><p>1 兆 = 10¹² 金币，常规兑换按整兆结算，零钱保留；兑换档位越高，抽中概率越低。持币严格超过 10⁹ 兆时，任意兑换份额都将消耗全部金币，应发 INT64_MAX 钻石，钱包溢出部分销毁。</p></div></section>
+<section id="responses" class="dev-card"><h2>03 / 返回格式</h2><p>成功返回 HTTP 200，JSON 包含 <code>ok</code>、<code>data</code>、完整的 <code>state</code>、<code>storage</code> 和 <code>auto_catches</code>。以下为 <code>GET /getpays</code> 示例：</p><pre><code>{
+  "ok": true,
+  "data": {"gold": 12500.5, "diamonds": "42", "catches": 6},
+  "state": {"gold": 12500.5, "diamonds": "42", "catches": 6, "level": 3, "...": "其余游戏状态"},
+  "storage": "signed-cookie",
+  "auto_catches": 0
+}</code></pre><p><code>gold</code> 是 F64 数字，封顶于 1.7976931348623155e308；<code>diamonds</code> 始终为十进制字符串，最高 <code>"9223372036854775807"</code>，请使用 BigInt 或整数解析。</p><p><code>POST /upgrademain</code> 无需请求体，每次升级一级，与网页「升级一次」使用相同费用和 Lv.870 上限。<code>data.levels</code> 为本次升级数（成功时为 1），最新等级及金币见 <code>state.level</code>、<code>state.gold</code>。金币不足或满级返回 400，不扣资源。</p><p><code>POST /fish</code> 的 <code>data.catch</code> 含鱼类 ID、<code>gold</code> 收益、<code>new</code> 首次发现标记。兑换结果含 <code>spent</code>、<code>rate</code>、<code>minted</code>、<code>awarded</code>、<code>destroyed</code>、<code>special</code>；钻石数量均为字符串。<code>special=true</code> 时 <code>rate=null</code>。</p><p><code>GET /tujian</code> 的 <code>data</code> 含 <code>total</code>、<code>unlocked</code>（已捕获、档案已解锁）和 <code>locked</code>（尚未捕获）。每条记录的 <code>available</code> 表示等级能否捕获，<code>required_level</code> 为所需等级，<code>caught</code> 为捕获次数。未捕获的鱼保留名称和稀有度，完整描述与体长在首次捕获后开放。</p></section>
+<section id="examples" class="dev-card"><h2>04 / 调用示例</h2><h3>curl：保持同一个 Cookie jar</h3><pre><code>export ABYSS_USER_KEY='替换为你创建的 User Key'
+
+curl -sS -b abyss-cookies.txt -c abyss-cookies.txt \
+  -H "X-User-Key: $ABYSS_USER_KEY" \
+  -X POST '{{ base_url }}/fish'
+
+curl -sS -b abyss-cookies.txt -c abyss-cookies.txt \
+  -H "X-User-Key: $ABYSS_USER_KEY" \
+  '{{ base_url }}/getpays'
+
+curl -sS -b abyss-cookies.txt -c abyss-cookies.txt \
+  -H "X-User-Key: $ABYSS_USER_KEY" \
+  '{{ base_url }}/tujian'</code></pre><h3>Python：requests.Session</h3><p>先安装客户端依赖：<code>python -m pip install requests</code>。</p><pre><code>import os
+import requests
+
+with requests.Session() as client:
+    client.headers.update({"X-User-Key": os.environ["ABYSS_USER_KEY"]})
+    response = client.post("{{ base_url }}/fish", timeout=15)
+    response.raise_for_status()
+    print(response.json()["data"])
+
+    response = client.get("{{ base_url }}/getpays", timeout=15)
+    response.raise_for_status()
+    print(response.json()["data"])
+</code></pre><p>Session 会在同一进程内自动保留 Cookie；跨进程继续航程时需要额外保存并加载 Cookie jar。</p><h3>Python：标准库 CookieJar，无需额外依赖</h3><pre><code>import json
+import os
+from http.cookiejar import CookieJar
+from urllib.request import HTTPCookieProcessor, Request, build_opener
+
+client = build_opener(HTTPCookieProcessor(CookieJar()))
+client.addheaders = [("X-User-Key", os.environ["ABYSS_USER_KEY"])]
+
+def call(path, method="GET"):
+    req = Request("{{ base_url }}" + path, method=method)
+    with client.open(req) as response:
+        return json.load(response)
+
+print(call("/fish", "POST")["data"])
+print(call("/getpays")["data"])
+print(call("/tujian")["data"])</code></pre><p>重复捕鱼应等待至少 0.65 秒。标准库 CookieJar 只在当前脚本进程存活；需要跨脚本运行保存时，可改用 MozillaCookieJar 并在调用前后 load / save。</p></section>
+<section id="errors" class="dev-card"><h2>05 / 错误代码</h2><div class="dev-table-scroll"><table class="dev-endpoints"><thead><tr><th>HTTP</th><th>含义</th></tr></thead><tbody><tr><td>400</td><td>没有渔网、未解锁兑换、金币或钻石不足、装备满级等规则不满足。</td></tr><tr><td>401</td><td>Key 缺失、格式错误、无效或已吊销。</td></tr><tr><td>403</td><td>账号未开启开发者计划；Key 管理操作的 CSRF 验证失败。</td></tr><tr><td>405</td><td>HTTP 方法不正确，请按手册使用 GET 或 POST。</td></tr><tr><td>429</td><td>手动捕鱼仍在冷却中，请稍候重试。</td></tr></tbody></table></div><pre><code>{"ok": false, "error": "先在船坞购买自动拖网"}</code></pre><p>规则失败不会扣除金币或钻石。可在 <a href="/developer">Key 管理页</a> 随时吊销 Key，后续调用立即失效。完整 Key 不会再次返回，服务端仅保存其哈希及可识别前缀。</p></section>
+<footer class="dev-footer">FLASK EDITION ONLY <span>ABYSSAL · API HANDBOOK / BETA</span></footer></main></div></body></html>
