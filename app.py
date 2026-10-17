@@ -22,7 +22,8 @@ import developer
 
 
 def create_app(config=None):
-    app = Flask(__name__, instance_relative_config=True)
+    app = Flask(__name__, instance_relative_config=True,
+                instance_path=(config or {}).get("INSTANCE_PATH"))
     app.json.sort_keys = False
     app.config.from_mapping(
         DATABASE=os.environ.get("ABYSS_DATABASE", str(Path(app.instance_path) / "abyss.sqlite3")),
@@ -171,12 +172,14 @@ def create_app(config=None):
         except game.RuleError:
             return redirect(url_for("login_page"))
         return render_template("index.html", fish=game.FISH, username=user["username"],
-                               developer_enabled=user["developer_enabled"])
+                               developer_enabled=user["developer_enabled"],
+                               desktop=app.config.get("DESKTOP_MODE", False))
 
     @app.get("/login")
     def login_page():
         identity()
-        return render_template("auth.html", csrf=session["csrf"])
+        return render_template("auth.html", csrf=session["csrf"],
+                               desktop=app.config.get("DESKTOP_MODE", False))
 
     @app.get("/auth/csrf")
     def auth_csrf():
